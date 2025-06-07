@@ -1,0 +1,11 @@
+langchain_google_genai
+transformers
+protobuf
+
+pytesseract
+pillow
+transformers
+
+openai
+python-dotenv
+torch
