@@ -1,6 +1,7 @@
 langchain_google_genai
 transformers
 protobuf
+nltk
 
 pytesseract
 pillow

@@ -14,6 +14,8 @@ BD_ARTIGOS = f"{CAMINHO_BD}\\artigos.sqlite3"
 PALAVRAS_CHAVE_POR_ARTIGO = 7
 FREQUENCIA_MINIMA = 2
 
+MAXIMO_ARTIGOS = 1_000
+
 REMOVIVEIS_LATEX = [
     "\\textbf",
     "\\textit",
@@ -168,8 +170,6 @@ def get_artigos(como_linhas = False):
     conexao.close()
 
     return artigos
-
-MAXIMO_ARTIGOS = 1_000
 
 if __name__ == "__main__":
     palavras_de_parada, classificacoes = inicializar()

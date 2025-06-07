@@ -11,9 +11,6 @@ CONVERSAS = [
     "C:\\Users\\WAA-HP\\Documents\\posweb\\bibliotecario.chain\\conversas\\informacoes_basicas.json"
 ]
 
-CAMINHO_ARTIGOS = "/misc/ifba/workspaces/sistemas especialistas/bibliotecario.chain/artigos"
-MAX_ARTIGOS = 1_000
-
 def carregar_conversas():
     conversas = []
 
@@ -43,7 +40,7 @@ def get_pares_artigo_tokens():
     pares = []
 
     for contador in range(1, MAXIMO_ARTIGOS):
-        caminho_artigo = f"{CAMINHO_ARTIGOS}/{contador}.tex"
+        caminho_artigo = f"{CAMINHO_ARTIGOS}\\{contador}.tex"
 
         if os.path.exists(caminho_artigo):
             sucesso, conteudo = ler_conteudo(caminho_artigo)
@@ -56,48 +53,44 @@ def get_pares_artigo_tokens():
                 tokens = eliminar_marcacoes_latex(tokens)
 
                 pares.append((titulo, tokens))
+        else:
+            break
 
     return pares
 
-def inicializar_contexto(pares_mensagem_resposta, pares_artigo_tokens):
-    contexto = [
-        ("system", f"Você é um bibliotecário chamado {NOME_ROBO}"),
-        ("system", "Você deve fonecer suporte a usuários de uma biblioteca de uma instituição de ensino")
-    ]
+def get_prompt(pares_mensagem_resposta, pares_artigo_tokens):
+    prompt = []
+
+    prompt.append(("system", f"Você é um bibliotecário chamado '{NOME_ROBO}'"))
+    prompt.append(("system", "vousé deve fonecer suporte a usuários de uma biblioteca de uma instituição de ensino"))
 
     for mensagem, resposta in pares_mensagem_resposta:
-        contexto.append(
-            ("system", f"Caso os usuários falem ou perguntem '{mensagem}' ou algo parecido com isso, sua resposta deve ser '{resposta}'")
-        )
-
+        prompt.append(("system", f"Caso os usuários falem ou perguntem '{mensagem}' ou algo parecido com isso, sua resposta deve ser '{resposta}'"))
+    
     for artigo, tokens in pares_artigo_tokens:
-        contexto.append(
-            ("system", f"Considere que existe um artigo cujo título é '{artigo}' e que possui esta lista de tokens significativos: '{tokens}', você deve extrair palavras-chave dos tokens para indicar este artigo listando o seu título"))
-        
-    contexto.append(("system", "Você deve realizar a pesquisa por palavras chave sempre que o usuário informar que deseja pesquisar por artigos. A sua resposta, neste caso, deve ser 'Informe as palavras-chave desejadas' ou alguma variação"))
-    contexto.append(("system", "Caso o usuário envie alguma mensagem ou pergunta além destas configuradas, você deve informar que não tem como responder e que ele deve procurar informações no site oficial da biblioteca"))
-    contexto.append(("human", "{pergunta}"))
-
-    return contexto
-
-import secrets
+        prompt.append(("system", f"Considere que existe um artigo cujo título é '{artigo}' e que possui esta lista de tokens significativos: '{tokens}'"))
+    
+    prompt.append(("system", "Você deve extrair da lista de tokens dos artigos as palavras-chave mais significativas, que são aquelas relacionadas com tecnologia da informação."))
+    prompt.append(("system", "Você deve realizar uma filtragem de artigos por palavras-chave sempre que o usuario informar que deseja pesquisar por artigos. A sua resposta, neste caso, deve ser 'Informe as palavras-chave desejadas' ou alguma variação"))
+    prompt.append(("system", "Caso o usuário envie alguma mensagem ou pergunta além destas configuradas, você deve informar que não tem como responder e que ele deve procurar informações no site oficial da biblioteca"))
+    prompt.append(("system", "Ao apresentar o resultado da pesquisa, você deve apresentar apenas a lista de artigos encontrados e um contador de quantos artigos foram encontrados"))
+    prompt.append(("system", "O usuario poderá informar as palavras-chave separadas por vírgula ou espaço."))
+    prompt.append(("human", "{pergunta}"))
+    return prompt
 
 if __name__ == "__main__":
-    key = "AIzaSyCyzN12b2_mOHHtyn6WBGiVi8urE_Cp4I4"
-    print(secrets.token_hex(39))
-
 
     pares_mensagem_resposta = get_pares_mensagem_resposta(carregar_conversas())
     pares_artigo_tokens = get_pares_artigo_tokens()
 
-    iniciada, IA = iniciar_IA(inicializar_contexto(pares_mensagem_resposta, pares_artigo_tokens))
+    iniciada, IA = iniciar_IA(get_prompt(pares_mensagem_resposta, pares_artigo_tokens))
     if iniciada:
-        print("acesso à IA iniciado, atendendo usuários da biblioteca...")
+        print("acesso à IA iniciado, atendendo usuários...")
         while True:
-            pergunta = input("👤 ")
+            pergunta = input("👤: ")
 
             sucesso, resposta = obter_resposta(IA, {"pergunta": pergunta})
             if sucesso:
-                print(f"🤖 {resposta.content}")
+                print(f"🤖: {resposta.content}")
             else:
-                print(f"🤖 Estou tendo problemas para realizar o processamento de sua mensagem neste momento. Tente novamente mais tarde")
+                print(f"🤖: Estou tendo problemas para realizar o processamento de sua mensagem neste momento. Tente novamente mais tarde")
